@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test (Rust stable on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check Formatting
+        run: cargo fmt --check
+
+      - name: Clippy Linter
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run Test Suites
+        run: cargo test --all-targets --verbose
+
+      - name: Build Release Binary
+        run: cargo build --release --verbose
